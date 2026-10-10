@@ -14,6 +14,8 @@ class NotesApp:
         self.root.title("Заметки")
         self.root.geometry("900x580")
         self.root.minsize(720, 440)
+        self.root.bind("<Control-n>", lambda _event: self.new_note())
+        self.root.bind("<Control-s>", lambda _event: self.save_note())
 
         self.store = NoteStore()
         self.current_note_id: str | None = None
@@ -43,20 +45,20 @@ class NotesApp:
         left = ttk.Frame(main)
         left.grid(row=1, column=0, sticky="nsew")
         left.columnconfigure(0, weight=1)
-        left.rowconfigure(2, weight=1)
+        left.rowconfigure(3, weight=1)
 
         self.search_var = tk.StringVar()
+        ttk.Label(left, text="Поиск по заметкам").grid(row=0, column=0, sticky="w")
         search = ttk.Entry(left, textvariable=self.search_var)
-        search.grid(row=0, column=0, sticky="ew", pady=(0, 8))
-        search.insert(0, "")
+        search.grid(row=1, column=0, sticky="ew", pady=(4, 8))
         self.search_var.trace_add("write", lambda *_: self.refresh_notes())
 
         ttk.Button(left, text="＋ Новая заметка", command=self.new_note).grid(
-            row=1, column=0, sticky="ew", pady=(0, 8)
+            row=2, column=0, sticky="ew", pady=(0, 8)
         )
 
         list_frame = ttk.Frame(left)
-        list_frame.grid(row=2, column=0, sticky="nsew")
+        list_frame.grid(row=3, column=0, sticky="nsew")
         list_frame.columnconfigure(0, weight=1)
         list_frame.rowconfigure(0, weight=1)
         self.note_list = tk.Listbox(list_frame, exportselection=False, activestyle="dotbox")
@@ -69,19 +71,19 @@ class NotesApp:
         editor = ttk.Frame(main)
         editor.grid(row=1, column=1, sticky="nsew", padx=(14, 0))
         editor.columnconfigure(0, weight=1)
-        editor.rowconfigure(2, weight=1)
+        editor.rowconfigure(3, weight=1)
 
         ttk.Label(editor, text="Название").grid(row=0, column=0, sticky="w")
         self.title_var = tk.StringVar()
         self.title_entry = ttk.Entry(editor, textvariable=self.title_var)
         self.title_entry.grid(row=1, column=0, sticky="ew", pady=(4, 10))
 
-        ttk.Label(editor, text="Текст заметки").grid(row=2, column=0, sticky="nw")
+        ttk.Label(editor, text="Текст заметки").grid(row=2, column=0, sticky="w")
         self.content_text = tk.Text(editor, wrap="word", undo=True, height=15)
-        self.content_text.grid(row=2, column=0, sticky="nsew", pady=(24, 10))
+        self.content_text.grid(row=3, column=0, sticky="nsew", pady=(4, 10))
 
         buttons = ttk.Frame(editor)
-        buttons.grid(row=3, column=0, sticky="w")
+        buttons.grid(row=4, column=0, sticky="w")
         ttk.Button(buttons, text="Сохранить", command=self.save_note).grid(row=0, column=0, padx=(0, 8))
         ttk.Button(buttons, text="Удалить", command=self.delete_note).grid(row=0, column=1)
 
