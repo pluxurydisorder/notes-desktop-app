@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-page-heading"><a class="back-link" href="{{ url_for('index') }}">← К списку заметок</a><p class="eyebrow">ФОРМА ЗАПИСИ</p><h1>{{ page_title }}</h1><p class="muted">Заполните поля ниже. Поля со звёздочкой обязательны.</p></div>
+<form class="editor-card" method="post" action="{% if note_id %}{{ url_for('edit_note', note_id=note_id) }}{% else %}{{ url_for('create_note') }}{% endif %}">
+  <div class="field-grid">
+    <div class="field full"><label for="title">Название заметки <span>*</span></label><input id="title" name="title" type="text" maxlength="120" placeholder="Например, подготовить отчёт" value="{{ values.title }}" required></div>
+    <div class="field"><label for="author">Автор <span>*</span></label><input id="author" name="author" type="text" maxlength="80" placeholder="Ваше имя" value="{{ values.author }}" required></div>
+    <div class="field"><label for="category">Категория <span>*</span></label><select id="category" name="category" required>{% for item in categories %}<option value="{{ item }}" {% if values.category == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="priority">Приоритет <span>*</span></label><select id="priority" name="priority" required>{% for item in priorities %}<option value="{{ item }}" {% if values.priority == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="status">Статус <span>*</span></label><select id="status" name="status" required>{% for item in statuses %}<option value="{{ item }}" {% if values.status == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+    <div class="field full"><label for="description">Описание <span>*</span></label><textarea id="description" name="description" rows="6" maxlength="3000" placeholder="Подробно опишите задачу или заметку..." required>{{ values.description }}</textarea><small>До 3000 символов</small></div>
+  </div>
+  <div class="form-actions"><a class="button secondary" href="{{ url_for('index') }}">Отмена</a><button class="button primary" type="submit">{{ submit_label }}</button></div>
+</form>
+{% endblock %}

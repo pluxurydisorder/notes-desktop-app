@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-page-heading"><a class="back-link" href="{{ url_for('index') }}">← К списку заметок</a><p class="eyebrow">ПРОСМОТР ЗАПИСИ · №{{ note['id'] }}</p><h1>{{ note['title'] }}</h1><p class="muted">Создано: {{ note['created_at'] }}</p></div>
+<article class="detail-card">
+  <div class="detail-badges"><span class="category-pill">{{ note['category'] }}</span><span class="priority priority-{{ note['priority']|lower }}">{{ note['priority'] }} приоритет</span><span class="status status-{{ note['status']|replace(' ', '-')|lower }}">{{ note['status'] }}</span></div>
+  <div class="detail-section"><h2>Описание</h2><p class="detail-description">{{ note['description'] }}</p></div>
+  <div class="detail-section"><h2>Информация</h2><dl class="info-list"><div><dt>Автор</dt><dd>{{ note['author'] }}</dd></div><div><dt>Категория</dt><dd>{{ note['category'] }}</dd></div><div><dt>Приоритет</dt><dd>{{ note['priority'] }}</dd></div><div><dt>Статус</dt><dd>{{ note['status'] }}</dd></div></dl></div>
+  <div class="form-actions detail-actions"><a class="button secondary" href="{{ url_for('index') }}">Назад к списку</a><a class="button primary" href="{{ url_for('edit_note', note_id=note['id']) }}">Редактировать</a><form method="post" action="{{ url_for('delete_note', note_id=note['id']) }}" onsubmit="return confirm('Удалить эту заметку?')"><button class="button danger" type="submit">Удалить</button></form></div>
+</article>
+{% endblock %}
