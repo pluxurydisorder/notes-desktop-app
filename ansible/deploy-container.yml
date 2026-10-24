@@ -1,0 +1,165 @@
+---
+- name: Transfer the Docker image and deploy Notes on the target server
+  hosts: web
+  become: true
+  gather_facts: true
+
+  vars:
+    image_name: notes-web
+    image_tag: latest
+    container_name: notes-web
+    host_port: 8081
+    container_port: 5000
+    app_volume: notes-web-data
+    flask_secret_key: practice-5-local-demo-key-change-for-production
+    remote_image_archive: "/tmp/{{ container_name }}-{{ image_tag }}.tar"
+
+  pre_tasks:
+    - name: Verify that the target is Ubuntu or Debian
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['os_family'] == 'Debian'
+        fail_msg: "This playbook expects Ubuntu/Debian."
+
+    - name: Require the exported Docker image archive path
+      ansible.builtin.assert:
+        that:
+          - image_archive is defined
+          - image_archive | length > 0
+        fail_msg: "Pass image_archive as an absolute path on the Jenkins controller."
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+  tasks:
+    - name: Install Docker Engine from Ubuntu/Debian packages
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Enable and start Docker
+      ansible.builtin.systemd_service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Copy the image archive from the Jenkins controller to the server
+      ansible.builtin.copy:
+        src: "{{ image_archive }}"
+        dest: "{{ remote_image_archive }}"
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Load the Docker image on the server
+      ansible.builtin.command:
+        argv:
+          - docker
+          - load
+          - --input
+          - "{{ remote_image_archive }}"
+      register: docker_load_result
+      changed_when: "'Loaded image:' in docker_load_result.stdout or 'Loaded image ID:' in docker_load_result.stdout"
+
+    - name: Check whether the persistent Docker volume exists
+      ansible.builtin.command:
+        argv:
+          - docker
+          - volume
+          - inspect
+          - "{{ app_volume }}"
+      register: volume_inspect
+      changed_when: false
+      failed_when: false
+
+    - name: Create the persistent Docker volume if missing
+      ansible.builtin.command:
+        argv:
+          - docker
+          - volume
+          - create
+          - "{{ app_volume }}"
+      when: volume_inspect.rc != 0
+      changed_when: true
+
+    - name: Set the SQLite volume ownership for the unprivileged container user
+      ansible.builtin.command:
+        argv:
+          - docker
+          - run
+          - --rm
+          - --user
+          - '0:0'
+          - --mount
+          - "type=volume,source={{ app_volume }},target=/data"
+          - --entrypoint
+          - /bin/sh
+          - "{{ image_name }}:{{ image_tag }}"
+          - -c
+          - 'chown -R 10001:10001 /data'
+      changed_when: true
+
+    - name: Check whether the previous Notes container exists
+      ansible.builtin.command:
+        argv:
+          - docker
+          - container
+          - inspect
+          - "{{ container_name }}"
+      register: old_container
+      changed_when: false
+      failed_when: false
+
+    - name: Stop and remove the previous Notes container
+      ansible.builtin.command:
+        argv:
+          - docker
+          - rm
+          - --force
+          - "{{ container_name }}"
+      when: old_container.rc == 0
+      changed_when: true
+
+    - name: Start the new Notes container
+      ansible.builtin.command:
+        argv:
+          - docker
+          - run
+          - --detach
+          - --name
+          - "{{ container_name }}"
+          - --restart
+          - unless-stopped
+          - --publish
+          - "0.0.0.0:{{ host_port }}:{{ container_port }}"
+          - --mount
+          - "type=volume,source={{ app_volume }},target=/data"
+          - --env
+          - NOTES_DATABASE=/data/notes.db
+          - --env
+          - "FLASK_SECRET_KEY={{ flask_secret_key }}"
+          - "{{ image_name }}:{{ image_tag }}"
+      register: new_container
+      changed_when: true
+
+    - name: Wait until the Notes application returns HTTP 200
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ host_port }}/"
+        method: GET
+        status_code: 200
+        return_content: false
+      register: notes_http_check
+      retries: 10
+      delay: 3
+      until: notes_http_check.status == 200
+
+    - name: Remove the transferred image archive from the target
+      ansible.builtin.file:
+        path: "{{ remote_image_archive }}"
+        state: absent
+
+    - name: Show the deployed application URL
+      ansible.builtin.debug:
+        msg: "Notes container is running. URL: http://{{ ansible_host | default(inventory_hostname) }}:{{ host_port }}/"
