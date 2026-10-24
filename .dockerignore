@@ -1,0 +1,15 @@
+.git
+.gitignore
+.dockerignore
+**/.venv
+**/venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.mypy_cache
+.DS_Store
+.env
+practice2_notes/*.db
+practice2_notes/notes.db
+practice3_ansible
+practice4_jenkins_bundle
