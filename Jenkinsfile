@@ -7,12 +7,12 @@ pipeline {
     }
 
     parameters {
-        string(
-            name: 'DEPLOY_HOST',
-            defaultValue: '192.168.64.2',
-            description: 'IP-адрес Ubuntu-сервера в UTM'
-        )
-    }
+    string(
+        name: 'DEPLOY_HOST',
+        defaultValue: '192.168.64.2',
+        description: 'IP-адрес Ubuntu-сервера в UTM'
+    )
+}
 
     environment {
         // Use a normal PATH assignment; PATH+NAME inside environment can fail
