@@ -13,8 +13,8 @@ pipeline {
         APP_INTERNAL_PORT = '5000'
         APP_VOLUME = 'notes-web-data'
         // Common Docker CLI paths on Apple Silicon and Intel macOS.
-        PATH+DOCKER = '/Users/sorrow/.docker/bin:/opt/homebrew/bin:/usr/local/bin:/opt/homebrew/sbin'
-    }
+        PATH = "/Users/sorrow/.docker/bin:/opt/homebrew/bin:/usr/local/bin:/opt/homebrew/sbin:${env.PATH}"
+}
 
     stages {
         stage('Checkout source from GitHub') {
