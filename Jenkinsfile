@@ -45,19 +45,19 @@ pipeline {
         }
 
         stage('Build Docker image') {
-            steps {
-                sh '''
-                    set -eu
-                    command -v docker
-                    docker version
-                    # The Mac M1 and the Ubuntu ARM64 VM both use linux/arm64.
-                    docker build --platform linux/arm64 --pull \
-                        --file Dockerfile \
-                        --tag "$APP_IMAGE:$BUILD_NUMBER" .
-                    docker tag "$APP_IMAGE:$BUILD_NUMBER" "$APP_IMAGE:latest"
-                '''
-            }
-        }
+    steps {
+        sh '''
+            set -eu
+            docker version
+
+            docker build --pull --file Dockerfile --tag "notes-web:${BUILD_NUMBER}" .
+
+            docker image rm -f notes-web:latest >/dev/null 2>&1 || true
+
+            docker tag "notes-web:${BUILD_NUMBER}" notes-web:latest
+        '''
+    }
+}
 
         stage('Export Docker image') {
             steps {
