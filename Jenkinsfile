@@ -1,3 +1,5 @@
+docker image rm -f notes-web:latest >/dev/null 2>&1 || true
+docker tag "notes-web:${BUILD_NUMBER}" notes-web:latest
 pipeline {
     agent any
 
