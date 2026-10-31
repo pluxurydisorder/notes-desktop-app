@@ -1,5 +1,3 @@
-docker image rm -f notes-web:latest >/dev/null 2>&1 || true
-docker tag "notes-web:${BUILD_NUMBER}" notes-web:latest
 pipeline {
     agent any
 
@@ -48,6 +46,7 @@ pipeline {
     steps {
         sh '''
             set -eu
+
             docker version
 
             docker build --pull --file Dockerfile --tag "notes-web:${BUILD_NUMBER}" .
