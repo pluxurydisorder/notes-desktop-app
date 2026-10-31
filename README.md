@@ -25,3 +25,6 @@ python3 -m unittest discover -s tests -v
 ```
 
 Данные по умолчанию находятся в `~/.notes_desktop_app/notes.json` и не смешиваются с исходным кодом.
+
+
+Автоматический запуск Jenkins Pipeline настроен.
